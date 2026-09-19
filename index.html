@@ -1,0 +1,1652 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Chat Lobby</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+
+            font-family: Arial, sans-serif;
+
+            color: white;
+
+            background:
+                radial-gradient(circle at top, #29294d, #0b0b12 65%);
+
+            overflow-x: hidden;
+        }
+
+        button,
+        input {
+            font-family: inherit;
+        }
+
+        /* =========================
+           PAGE
+        ========================= */
+
+        .page {
+            width: 100%;
+            max-width: 1200px;
+
+            margin: auto;
+
+            padding: 30px;
+        }
+
+        h1 {
+            margin: 0;
+
+            text-align: center;
+
+            font-size: 48px;
+
+            text-shadow:
+                0 0 15px #8b5cf6,
+                0 0 30px #8b5cf6;
+        }
+
+        .subtitle {
+            text-align: center;
+
+            color: #aaa;
+
+            margin-top: 10px;
+            margin-bottom: 30px;
+        }
+
+        /* =========================
+           PANNEAU
+        ========================= */
+
+        .panel {
+            background: rgba(20, 20, 35, 0.92);
+
+            border: 1px solid #3b3b55;
+
+            border-radius: 20px;
+
+            padding: 25px;
+
+            box-shadow:
+                0 20px 60px rgba(0,0,0,.4);
+
+            margin-bottom: 20px;
+        }
+
+        /* =========================
+           CONFIGURATION
+        ========================= */
+
+        .settings-title {
+            margin-top: 0;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+
+            margin-bottom: 8px;
+
+            color: #aaa;
+        }
+
+        .nickname {
+            width: 100%;
+
+            padding: 13px 15px;
+
+            border-radius: 12px;
+
+            border: 1px solid #44445c;
+
+            background: #10101a;
+
+            color: white;
+
+            outline: none;
+
+            font-size: 16px;
+        }
+
+        .nickname:focus {
+            border-color: #8b5cf6;
+        }
+
+        /* =========================
+           SKINS
+        ========================= */
+
+        .skins {
+            display: grid;
+
+            grid-template-columns:
+                repeat(4, 1fr);
+
+            gap: 15px;
+        }
+
+        .skin {
+            position: relative;
+
+            border: 2px solid #35354c;
+
+            border-radius: 15px;
+
+            background: #11111c;
+
+            padding: 10px;
+
+            cursor: pointer;
+
+            transition: .2s;
+        }
+
+        .skin:hover {
+            transform: translateY(-4px);
+        }
+
+        .skin.selected {
+            border-color: #8b5cf6;
+
+            box-shadow:
+                0 0 20px rgba(139,92,246,.6);
+        }
+
+        .skin img {
+            width: 100%;
+
+            aspect-ratio: 1 / 1;
+
+            object-fit: contain;
+
+            display: block;
+        }
+
+        .skin-name {
+            text-align: center;
+
+            margin-top: 8px;
+
+            color: #ddd;
+
+            font-size: 13px;
+        }
+
+        /* =========================
+           BOUTONS
+        ========================= */
+
+        .buttons {
+            display: flex;
+
+            gap: 12px;
+
+            flex-wrap: wrap;
+
+            margin-top: 20px;
+        }
+
+        .button {
+            border: none;
+
+            border-radius: 12px;
+
+            padding: 13px 20px;
+
+            background: #8b5cf6;
+
+            color: white;
+
+            font-weight: bold;
+
+            font-size: 15px;
+
+            cursor: pointer;
+
+            transition: .2s;
+        }
+
+        .button:hover {
+            transform: translateY(-2px);
+
+            box-shadow:
+                0 0 20px rgba(139,92,246,.5);
+        }
+
+        .button.secondary {
+            background: #29293d;
+        }
+
+        .button.danger {
+            background: #dc3545;
+        }
+
+        /* =========================
+           LOBBY
+        ========================= */
+
+        #lobby {
+            display: none;
+        }
+
+        .lobby-header {
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
+
+            gap: 15px;
+
+            flex-wrap: wrap;
+        }
+
+        .room-code {
+            color: #aaa;
+        }
+
+        .room-link {
+            display: flex;
+
+            gap: 10px;
+
+            margin-top: 15px;
+        }
+
+        .room-link input {
+            flex: 1;
+
+            min-width: 0;
+
+            padding: 12px;
+
+            border-radius: 10px;
+
+            border: 1px solid #44445c;
+
+            background: #10101a;
+
+            color: white;
+        }
+
+        /* =========================
+           JOUEURS
+        ========================= */
+
+        .players {
+            display: grid;
+
+            grid-template-columns:
+                repeat(4, 1fr);
+
+            gap: 20px;
+
+            margin-top: 25px;
+        }
+
+        .player {
+            position: relative;
+
+            min-height: 330px;
+
+            border-radius: 20px;
+
+            padding: 15px;
+
+            background:
+                linear-gradient(
+                    180deg,
+                    #202035,
+                    #12121e
+                );
+
+            border: 1px solid #38384e;
+
+            text-align: center;
+
+            overflow: hidden;
+        }
+
+        .player.me {
+            border-color: #8b5cf6;
+        }
+
+        /* =========================
+           CHAT
+        ========================= */
+
+        .cat-container {
+            position: relative;
+
+            width: 100%;
+
+            max-width: 220px;
+
+            aspect-ratio: 1 / 1;
+
+            margin: auto;
+        }
+
+        .cat {
+            width: 100%;
+            height: 100%;
+
+            object-fit: contain;
+
+            filter:
+                drop-shadow(
+                    0 0 12px #8b5cf6
+                );
+
+            transform:
+                scale(
+                    calc(
+                        1 + var(--voice, 0) * .05
+                    )
+                );
+
+            transition:
+                filter .05s linear,
+                transform .05s linear;
+        }
+
+        /*
+            Cercle lumineux autour du chat
+        */
+
+        .voice-ring {
+            position: absolute;
+
+            inset: 5%;
+
+            border-radius: 50%;
+
+            border: 3px solid #8b5cf6;
+
+            opacity:
+                calc(
+                    .15 + var(--voice, 0) * .85
+                );
+
+            box-shadow:
+                0 0
+                calc(
+                    10px + var(--voice, 0) * 35px
+                )
+                #8b5cf6;
+
+            pointer-events: none;
+        }
+
+        .player-name {
+            margin-top: 10px;
+
+            font-size: 19px;
+
+            font-weight: bold;
+
+            word-break: break-word;
+        }
+
+        .player-status {
+            color: #aaa;
+
+            margin-top: 5px;
+
+            font-size: 13px;
+        }
+
+        .empty {
+            min-height: 330px;
+
+            border-radius: 20px;
+
+            border: 2px dashed #33334a;
+
+            display: flex;
+
+            justify-content: center;
+
+            align-items: center;
+
+            color: #55556a;
+
+            text-align: center;
+        }
+
+        /* =========================
+           MICRO
+        ========================= */
+
+        .mic-button {
+            margin-top: 12px;
+
+            padding: 9px 13px;
+
+            border: none;
+
+            border-radius: 10px;
+
+            background: #29293d;
+
+            color: white;
+
+            cursor: pointer;
+        }
+
+        /* =========================
+           RESPONSIVE
+        ========================= */
+
+        @media(max-width: 900px) {
+
+            .players {
+                grid-template-columns:
+                    repeat(2, 1fr);
+            }
+
+        }
+
+        @media(max-width: 600px) {
+
+            .page {
+                padding: 15px;
+            }
+
+            h1 {
+                font-size: 35px;
+            }
+
+            .skins {
+                grid-template-columns:
+                    repeat(2, 1fr);
+            }
+
+            .players {
+                grid-template-columns: 1fr;
+            }
+
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="page">
+
+    <!-- =========================
+         TITRE
+    ========================== -->
+
+    <h1>🐱 Chat Lobby</h1>
+
+    <div class="subtitle">
+        Fais parler ton chat avec ta voix !
+    </div>
+
+
+    <!-- =========================
+         MENU PRINCIPAL
+    ========================== -->
+
+    <div id="menu" class="panel">
+
+        <h2 class="settings-title">
+            Créer ton personnage
+        </h2>
+
+        <div class="input-group">
+
+            <label>
+                Ton pseudo
+            </label>
+
+            <input
+                id="nickname"
+                class="nickname"
+                type="text"
+                maxlength="20"
+                placeholder="Entre ton pseudo..."
+            >
+
+        </div>
+
+
+        <div class="input-group">
+
+            <label>
+                Choisis ton chat
+            </label>
+
+            <div id="skins" class="skins"></div>
+
+        </div>
+
+
+        <div class="buttons">
+
+            <button
+                id="createLobby"
+                class="button"
+            >
+                🎮 Créer un lobby
+            </button>
+
+            <button
+                id="joinLobby"
+                class="button secondary"
+            >
+                🔗 Rejoindre le lobby
+            </button>
+
+        </div>
+
+
+        <p id="menuMessage"></p>
+
+    </div>
+
+
+    <!-- =========================
+         LOBBY
+    ========================== -->
+
+    <div id="lobby" class="panel">
+
+        <div class="lobby-header">
+
+            <div>
+
+                <h2>
+                    🎮 Lobby
+                </h2>
+
+                <div
+                    id="roomCode"
+                    class="room-code"
+                >
+                    Code : ------
+                </div>
+
+            </div>
+
+
+            <div class="buttons">
+
+                <button
+                    id="copyLink"
+                    class="button"
+                >
+                    📋 Copier le lien
+                </button>
+
+                <button
+                    id="mute"
+                    class="button secondary"
+                >
+                    🎤 Couper le micro
+                </button>
+
+                <button
+                    id="leave"
+                    class="button danger"
+                >
+                    🚪 Quitter
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <div class="room-link">
+
+            <input
+                id="roomLink"
+                readonly
+            >
+
+        </div>
+
+
+        <!-- JOUEURS -->
+
+        <div
+            id="players"
+            class="players"
+        ></div>
+
+
+        <p id="lobbyMessage"></p>
+
+    </div>
+
+</div>
+
+
+<script>
+
+    /*
+    ============================================================
+        CONFIGURATION
+    ============================================================
+    */
+
+    const SKINS = [
+
+        {
+            file: "ChatCasque.png",
+            name: "ChatCasque"
+        },
+
+        {
+            file: "ChatCasque1.png",
+            name: "ChatCasque1"
+        },
+
+        {
+            file: "ChatCasque2.png",
+            name: "ChatCasque2"
+        },
+
+        {
+            file: "ChatCasque3.png",
+            name: "ChatCasque3"
+        }
+
+    ];
+
+
+    const MAX_PLAYERS = 4;
+
+
+    /*
+    ============================================================
+        ELEMENTS HTML
+    ============================================================
+    */
+
+    const menu =
+        document.getElementById("menu");
+
+    const lobby =
+        document.getElementById("lobby");
+
+    const skinsContainer =
+        document.getElementById("skins");
+
+    const nicknameInput =
+        document.getElementById("nickname");
+
+    const playersContainer =
+        document.getElementById("players");
+
+    const menuMessage =
+        document.getElementById("menuMessage");
+
+    const lobbyMessage =
+        document.getElementById("lobbyMessage");
+
+    const roomCode =
+        document.getElementById("roomCode");
+
+    const roomLink =
+        document.getElementById("roomLink");
+
+
+    /*
+    ============================================================
+        VARIABLES
+    ============================================================
+    */
+
+    let selectedSkin =
+        "ChatCasque.png";
+
+    let myId = null;
+
+    let roomId = null;
+
+    let socket = null;
+
+    let microphone = null;
+
+    let microphoneAnalyser = null;
+
+    let microphoneData = null;
+
+    let muted = false;
+
+
+    /*
+    ============================================================
+        JOUEURS
+    ============================================================
+    */
+
+    const players = new Map();
+
+
+    /*
+    ============================================================
+        AFFICHER LES SKINS
+    ============================================================
+    */
+
+    function displaySkins() {
+
+        skinsContainer.innerHTML = "";
+
+        SKINS.forEach(
+            skin => {
+
+                const button =
+                    document.createElement("div");
+
+                button.className =
+                    "skin";
+
+                if (
+                    skin.file ===
+                    selectedSkin
+                ) {
+
+                    button.classList.add(
+                        "selected"
+                    );
+
+                }
+
+
+                button.innerHTML = `
+
+                    <img
+                        src="skins/${skin.file}"
+                        alt="${skin.name}"
+                    >
+
+                    <div class="skin-name">
+                        ${skin.name}
+                    </div>
+
+                `;
+
+
+                button.onclick = () => {
+
+                    selectedSkin =
+                        skin.file;
+
+                    displaySkins();
+
+                };
+
+
+                skinsContainer.appendChild(
+                    button
+                );
+
+            }
+        );
+
+    }
+
+
+    displaySkins();
+
+
+    /*
+    ============================================================
+        CREER UN CODE DE LOBBY
+    ============================================================
+    */
+
+    function generateRoomCode() {
+
+        const chars =
+            "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+
+        let code = "";
+
+        for (
+            let i = 0;
+            i < 6;
+            i++
+        ) {
+
+            code +=
+                chars[
+                    Math.floor(
+                        Math.random() *
+                        chars.length
+                    )
+                ];
+
+        }
+
+        return code;
+
+    }
+
+
+    /*
+    ============================================================
+        MICROPHONE
+    ============================================================
+    */
+
+    async function startMicrophone() {
+
+        try {
+
+            microphone =
+                await navigator.mediaDevices.getUserMedia(
+                    {
+                        audio: true,
+                        video: false
+                    }
+                );
+
+
+            const audioContext =
+                new (
+                    window.AudioContext ||
+                    window.webkitAudioContext
+                )();
+
+
+            const source =
+                audioContext.createMediaStreamSource(
+                    microphone
+                );
+
+
+            microphoneAnalyser =
+                audioContext.createAnalyser();
+
+
+            microphoneAnalyser.fftSize =
+                256;
+
+
+            microphoneData =
+                new Uint8Array(
+                    microphoneAnalyser.fftSize
+                );
+
+
+            source.connect(
+                microphoneAnalyser
+            );
+
+
+            animateOwnVoice();
+
+
+            return true;
+
+        }
+        catch(error) {
+
+            console.error(error);
+
+            lobbyMessage.textContent =
+                "⚠️ Le microphone n'a pas pu être activé.";
+
+            return false;
+
+        }
+
+    }
+
+
+    /*
+    ============================================================
+        DETECTION DE LA VOIX
+    ============================================================
+    */
+
+    function getVoiceVolume() {
+
+        if (
+            !microphoneAnalyser ||
+            !microphoneData
+        ) {
+
+            return 0;
+
+        }
+
+
+        microphoneAnalyser
+            .getByteTimeDomainData(
+                microphoneData
+            );
+
+
+        let total = 0;
+
+
+        for (
+            let i = 0;
+            i < microphoneData.length;
+            i++
+        ) {
+
+            const value =
+                (
+                    microphoneData[i] -
+                    128
+                ) / 128;
+
+
+            total +=
+                value * value;
+
+        }
+
+
+        const rms =
+            Math.sqrt(
+                total /
+                microphoneData.length
+            );
+
+
+        return Math.min(
+            1,
+            rms * 6
+        );
+
+    }
+
+
+    /*
+    ============================================================
+        ANIMATION DU CHAT LOCAL
+    ============================================================
+    */
+
+    function animateOwnVoice() {
+
+        if (!microphoneAnalyser) {
+            return;
+        }
+
+
+        const volume =
+            getVoiceVolume();
+
+
+        const card =
+            document.querySelector(
+                `[data-player-id="${myId}"]`
+            );
+
+
+        if (card) {
+
+            card.style.setProperty(
+                "--voice",
+                volume
+            );
+
+        }
+
+
+        requestAnimationFrame(
+            animateOwnVoice
+        );
+
+    }
+
+
+    /*
+    ============================================================
+        CREER UNE CARTE JOUEUR
+    ============================================================
+    */
+
+    function createPlayerCard(
+        id,
+        player,
+        isMe
+    ) {
+
+        const card =
+            document.createElement("div");
+
+
+        card.className =
+            "player";
+
+
+        card.dataset.playerId =
+            id;
+
+
+        if (isMe) {
+
+            card.classList.add(
+                "me"
+            );
+
+        }
+
+
+        card.innerHTML = `
+
+            <div class="cat-container">
+
+                <img
+                    class="cat"
+                    src="skins/${player.skin}"
+                >
+
+                <div
+                    class="voice-ring"
+                ></div>
+
+            </div>
+
+
+            <div class="player-name">
+                ${escapeHTML(player.nickname)}
+                ${isMe ? " 👑" : ""}
+            </div>
+
+
+            <div class="player-status">
+
+                ${isMe
+                    ? "🎤 Toi"
+                    : "🎧 En ligne"
+                }
+
+            </div>
+
+        `;
+
+
+        if (isMe) {
+
+            const button =
+                document.createElement("button");
+
+
+            button.className =
+                "mic-button";
+
+
+            button.id =
+                "playerMuteButton";
+
+
+            button.textContent =
+                muted
+                    ? "🎤 Activer"
+                    : "🔇 Couper";
+
+
+            button.onclick =
+                toggleMicrophone;
+
+
+            card.appendChild(
+                button
+            );
+
+        }
+
+
+        return card;
+
+    }
+
+
+    /*
+    ============================================================
+        SECURITE DU PSEUDO
+    ============================================================
+    */
+
+    function escapeHTML(text) {
+
+        const div =
+            document.createElement("div");
+
+        div.textContent =
+            text;
+
+        return div.innerHTML;
+
+    }
+
+
+    /*
+    ============================================================
+        AFFICHER LES JOUEURS
+    ============================================================
+    */
+
+    function renderPlayers() {
+
+        playersContainer.innerHTML = "";
+
+
+        /*
+            MOI
+        */
+
+        if (myId) {
+
+            playersContainer.appendChild(
+
+                createPlayerCard(
+                    myId,
+                    {
+                        nickname:
+                            nicknameInput.value ||
+                            "Joueur",
+
+                        skin:
+                            selectedSkin
+                    },
+                    true
+                )
+
+            );
+
+        }
+
+
+        /*
+            AUTRES JOUEURS
+        */
+
+        players.forEach(
+            (player, id) => {
+
+                if (
+                    id === myId
+                ) {
+                    return;
+                }
+
+
+                playersContainer.appendChild(
+
+                    createPlayerCard(
+                        id,
+                        player,
+                        false
+                    )
+
+                );
+
+            }
+        );
+
+
+        /*
+            PLACES VIDES
+        */
+
+        const currentCount =
+            playersContainer.children.length;
+
+
+        for (
+            let i = currentCount;
+            i < MAX_PLAYERS;
+            i++
+        ) {
+
+            const empty =
+                document.createElement("div");
+
+
+            empty.className =
+                "empty";
+
+
+            empty.textContent =
+                "🐱 En attente d'un joueur...";
+
+
+            playersContainer.appendChild(
+                empty
+            );
+
+        }
+
+    }
+
+
+    /*
+    ============================================================
+        MICRO ON / OFF
+    ============================================================
+    */
+
+    function toggleMicrophone() {
+
+        if (!microphone) {
+            return;
+        }
+
+
+        muted =
+            !muted;
+
+
+        microphone
+            .getAudioTracks()
+            .forEach(
+                track => {
+
+                    track.enabled =
+                        !muted;
+
+                }
+            );
+
+
+        document.getElementById(
+            "mute"
+        ).textContent =
+            muted
+                ? "🎤 Activer le micro"
+                : "🎤 Couper le micro";
+
+
+        renderPlayers();
+
+    }
+
+
+    /*
+    ============================================================
+        BOUTON GLOBAL MICRO
+    ============================================================
+    */
+
+    document.getElementById(
+        "mute"
+    ).onclick =
+        toggleMicrophone;
+
+
+    /*
+    ============================================================
+        CREER UN LOBBY
+    ============================================================
+    */
+
+    document.getElementById(
+        "createLobby"
+    ).onclick = async () => {
+
+        const nickname =
+            nicknameInput.value.trim();
+
+
+        if (!nickname) {
+
+            menuMessage.textContent =
+                "⚠️ Entre d'abord ton pseudo.";
+
+            return;
+
+        }
+
+
+        roomId =
+            generateRoomCode();
+
+
+        await enterLobby();
+
+    };
+
+
+    /*
+    ============================================================
+        REJOINDRE UN LOBBY
+    ============================================================
+    */
+
+    document.getElementById(
+        "joinLobby"
+    ).onclick = async () => {
+
+        const nickname =
+            nicknameInput.value.trim();
+
+
+        if (!nickname) {
+
+            menuMessage.textContent =
+                "⚠️ Entre d'abord ton pseudo.";
+
+            return;
+
+        }
+
+
+        const params =
+            new URLSearchParams(
+                window.location.search
+            );
+
+
+        roomId =
+            params.get("room");
+
+
+        if (!roomId) {
+
+            menuMessage.textContent =
+                "⚠️ Aucun lien de lobby.";
+
+            return;
+
+        }
+
+
+        await enterLobby();
+
+    };
+
+
+    /*
+    ============================================================
+        ENTRER DANS LE LOBBY
+    ============================================================
+    */
+
+    async function enterLobby() {
+
+        menu.style.display =
+            "none";
+
+
+        lobby.style.display =
+            "block";
+
+
+        roomCode.textContent =
+            "Code : " + roomId;
+
+
+        const newURL =
+            window.location.origin +
+            window.location.pathname +
+            "?room=" +
+            roomId;
+
+
+        window.history.replaceState(
+            {},
+            "",
+            newURL
+        );
+
+
+        roomLink.value =
+            newURL;
+
+
+        renderPlayers();
+
+
+        /*
+            DEMANDE DU MICRO
+        */
+
+        await startMicrophone();
+
+
+        /*
+            CONNEXION AU SERVEUR
+        */
+
+        connectToServer();
+
+    }
+
+
+    /*
+    ============================================================
+        CONNEXION WEBSOCKET
+    ============================================================
+    */
+
+    function connectToServer() {
+
+        const protocol =
+            window.location.protocol ===
+            "https:"
+                ? "wss:"
+                : "ws:";
+
+
+        socket =
+            new WebSocket(
+                protocol +
+                "//" +
+                window.location.host
+            );
+
+
+        socket.onopen = () => {
+
+            console.log(
+                "Serveur connecté"
+            );
+
+
+            socket.send(
+                JSON.stringify({
+
+                    type: "join",
+
+                    room: roomId,
+
+                    nickname:
+                        nicknameInput.value,
+
+                    skin:
+                        selectedSkin
+
+                })
+            );
+
+        };
+
+
+        socket.onmessage =
+            event => {
+
+                const message =
+                    JSON.parse(
+                        event.data
+                    );
+
+
+                handleServerMessage(
+                    message
+                );
+
+            };
+
+
+        socket.onerror = () => {
+
+            lobbyMessage.textContent =
+                "❌ Impossible de contacter le serveur.";
+
+        };
+
+    }
+
+
+    /*
+    ============================================================
+        MESSAGES DU SERVEUR
+    ============================================================
+    */
+
+    function handleServerMessage(
+        message
+    ) {
+
+        console.log(
+            "Serveur :",
+            message
+        );
+
+
+        if (
+            message.type ===
+            "joined"
+        ) {
+
+            myId =
+                message.id;
+
+
+            renderPlayers();
+
+        }
+
+
+        if (
+            message.type ===
+            "player-joined"
+        ) {
+
+            players.set(
+                message.id,
+                {
+                    nickname:
+                        message.nickname,
+
+                    skin:
+                        message.skin
+                }
+            );
+
+
+            renderPlayers();
+
+        }
+
+
+        if (
+            message.type ===
+            "player-left"
+        ) {
+
+            players.delete(
+                message.id
+            );
+
+
+            renderPlayers();
+
+        }
+
+    }
+
+
+    /*
+    ============================================================
+        COPIER LE LIEN
+    ============================================================
+    */
+
+    document.getElementById(
+        "copyLink"
+    ).onclick = async () => {
+
+        try {
+
+            await navigator.clipboard.writeText(
+                roomLink.value
+            );
+
+
+            lobbyMessage.textContent =
+                "✅ Lien copié !";
+
+        }
+        catch {
+
+            roomLink.select();
+
+            document.execCommand(
+                "copy"
+            );
+
+
+            lobbyMessage.textContent =
+                "✅ Lien copié !";
+
+        }
+
+    };
+
+
+    /*
+    ============================================================
+        QUITTER
+    ============================================================
+    */
+
+    document.getElementById(
+        "leave"
+    ).onclick = () => {
+
+        if (socket) {
+
+            socket.close();
+
+        }
+
+
+        if (microphone) {
+
+            microphone
+                .getTracks()
+                .forEach(
+                    track =>
+                        track.stop()
+                );
+
+        }
+
+
+        window.location.href =
+            window.location.pathname;
+
+    };
+
+
+</script>
+
+</body>
+</html>
