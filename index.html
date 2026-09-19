@@ -1535,25 +1535,25 @@
 
 
         if (
-            message.type ===
-            "player-joined"
-        ) {
+    message.type ===
+    "player-joined"
+) {
 
-            players.set(
-                message.id,
-                {
-                    nickname:
-                        message.nickname,
+    players.set(
+        message.player.id,
+        {
+            nickname:
+                message.player.nickname,
 
-                    skin:
-                        message.skin
-                }
-            );
-
-
-            renderPlayers();
-
+            skin:
+                message.player.skin
         }
+    );
+
+
+    renderPlayers();
+
+}
 
 
         if (
