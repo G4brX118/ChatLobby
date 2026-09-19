@@ -13,7 +13,7 @@ const rooms = new Map();
 const server = http.createServer((req, res) => {
   let filePath;
 
-  if (req.url === "/" || req.url === "/index.html") {
+if (req.url === "/" || req.url.startsWith("/?") || req.url === "/index.html") {
     filePath = path.join(__dirname, "index.html");
   } else if (req.url.startsWith("/skins/")) {
     const fileName = path.basename(req.url);
